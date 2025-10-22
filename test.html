@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Day-wise Data Manager</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { margin: 5px; padding: 5px; }
+    pre { background: #f4f4f4; padding: 10px; max-height: 300px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+
+<h2>Day-wise Data Manager</h2>
+
+<h3>Add Data</h3>
+<label>Date:</label>
+<input type="date" id="date"><br>
+<input type="text" id="name" placeholder="Name">
+<input type="text" id="email" placeholder="Email">
+<button onclick="addData()">Add</button>
+
+<h3>Filter/View Data</h3>
+<label>View Date:</label>
+<input type="date" id="viewDate">
+<button onclick="showData()">Show</button>
+<button onclick="showAllData()">Show All</button>
+
+<h3>Export</h3>
+<button onclick="downloadJSON()">Download JSON</button>
+
+<pre id="output"></pre>
+
+<script>
+  // Load existing data from localStorage or initialize empty object
+  let dayData = JSON.parse(localStorage.getItem("dayData")) || {};
+
+  // Add new entry
+  function addData() {
+    const date = document.getElementById("date").value;
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+
+    if (!date || !name || !email) {
+      alert("Please fill all fields!");
+      return;
+    }
+
+    if (!dayData[date]) dayData[date] = [];
+    dayData[date].push({ name, email });
+
+    // Save to localStorage
+    localStorage.setItem("dayData", JSON.stringify(dayData));
+
+    alert("Data added successfully!");
+    clearInputs();
+    showDataForDate(date);
+  }
+
+  // Show data for a specific date
+  function showData() {
+    const date = document.getElementById("viewDate").value;
+    if (!date) {
+      alert("Select a date to view data.");
+      return;
+    }
+    showDataForDate(date);
+  }
+
+  function showDataForDate(date) {
+    const data = dayData[date];
+    if (data && data.length > 0) {
+      document.getElementById("output").textContent = JSON.stringify({ [date]: data }, null, 2);
+    } else {
+      document.getElementById("output").textContent = `No data found for ${date}`;
+    }
+  }
+
+  // Show all data
+  function showAllData() {
+    if (Object.keys(dayData).length === 0) {
+      document.getElementById("output").textContent = "No data available.";
+    } else {
+      document.getElementById("output").textContent = JSON.stringify(dayData, null, 2);
+    }
+  }
+
+  // Download JSON
+  function downloadJSON() {
+    const jsonString = JSON.stringify(dayData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "dayWiseData.json";
+    link.click();
+  }
+
+  // Clear input fields
+  function clearInputs() {
+    document.getElementById("date").value = "";
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
+  }
+
+  // Optional: Show all data on page load
+  window.onload = showAllData;
+</script>
+
+</body>
+</html>
